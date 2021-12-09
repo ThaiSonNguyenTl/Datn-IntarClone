@@ -20,7 +20,7 @@ const PostDialogStats = ({
   token,
   dispatch,
   profileDispatch,
-  bookmarkPost,
+  // bookmarkPost,
   showAlert,
   showModal,
   hideModal,
@@ -103,7 +103,7 @@ const PostDialogStats = ({
         <Icon className="icon--button" icon="paper-plane-outline" />
         <Icon
           className="icon--button"
-          onClick={() => bookmarkPost(post._id, token)}
+          // onClick={() => bookmarkPost(post._id, token)}
           icon={
             currentUser && currentUser.bookmarks
               ? !!currentUser.bookmarks.find(

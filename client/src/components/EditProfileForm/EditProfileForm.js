@@ -26,6 +26,7 @@ import Button from '../Button/Button';
 import SettingsForm from '../SettingsForm/SettingsForm';
 import SettingsFormGroup from '../SettingsForm/SettingsFormGroup/SettingsFormGroup';
 import ChangeAvatarButton from '../ChangeAvatarButton/ChangeAvatarButton';
+import { useHistory } from "react-router-dom";
 
 const EditProfileForm = ({
   currentUser,
@@ -34,6 +35,7 @@ const EditProfileForm = ({
   updateProfileStart,
   updatingProfile,
 }) => {
+  const history = useHistory();
   const validate = (values) => {
     const errors = {};
     const emailError = validateEmail(values.email);
@@ -65,6 +67,7 @@ const EditProfileForm = ({
     validate,
     onSubmit: async (values) => {
       await updateProfileStart(token, values);
+      history.push("/:username".replace(":username",values.username));
       showAlert('Profile saved.');
     },
   });

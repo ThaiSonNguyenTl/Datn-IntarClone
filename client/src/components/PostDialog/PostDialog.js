@@ -181,17 +181,17 @@ const PostDialog = ({
                       history.push(`/post/${postId}`);
                     },
                   },
-                  {
-                    text: 'Copy link',
-                    onClick: () => {
-                      navigator.clipboard
-                        .writeText(document.URL)
-                        .then(() => showAlert('Link copied to clipboard.'))
-                        .catch(() =>
-                          showAlert('Could not copy link to clipboard.')
-                        );
-                    },
-                  },
+                  // {
+                  //   text: 'Copy link',
+                  //   onClick: () => {
+                  //     navigator.clipboard
+                  //       .writeText(document.URL)
+                  //       .then(() => showAlert('Link copied to clipboard.'))
+                  //       .catch(() =>
+                  //         showAlert('Could not copy link to clipboard.')
+                  //       );
+                  //   },
+                  // },
                 ];
                 showModal(
                   {

@@ -32,6 +32,7 @@ const SignUpPage = lazy(() => import('../../pages/SignUpPage/SignUpPage'));
 const HomePage = lazy(() => import('../../pages/HomePage/HomePage'));
 const NewPostPage = lazy(() => import('../../pages/NewPostPage/NewPostPage'));
 const ExplorePage = lazy(() => import('../../pages/ExplorePage/ExplorePage'));
+const MessagePage = lazy(() => import('../../pages/MessagePage/Messenger'));
 const NotFoundPage = lazy(() =>
   import('../../pages/NotFoundPage/NotFoundPage')
 );
@@ -110,6 +111,7 @@ export function UnconnectedApp({
           <ProtectedRoute path="/activity" component={ActivityPage} />
           <ProtectedRoute path="/new" component={NewPostPage} />
           <ProtectedRoute path="/explore" component={ExplorePage} />
+          <ProtectedRoute path="/message" component={MessagePage} />
           <Route exact path="/:username" component={ProfilePage} />
           <Route path="/post/:postId" component={PostPage} />
           <ProtectedRoute path="/confirm/:token" component={ConfirmationPage} />

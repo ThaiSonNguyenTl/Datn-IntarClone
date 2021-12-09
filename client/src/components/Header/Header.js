@@ -49,6 +49,20 @@ const Header = memo(({ currentUser }) => {
         <div className="header__icons">
           {currentUser ? (
             <Fragment>
+              <Link to="/">
+                <Icon icon={pathname === "/" ? "home" : "home-outline"} />
+              </Link>
+              <Link to={"/message"}>
+                <Icon
+                  className="icon--button"
+                  icon={
+                    pathname === "/message"
+                      ? "paper-plane"
+                      : "paper-plane-outline"
+                  }
+                />
+              </Link>
+              <NewPostButton plusIcon />
               <Link to="/explore">
                 <Icon
                   icon={pathname === "/explore" ? "compass" : "compass-outline"}
@@ -64,13 +78,6 @@ const Header = memo(({ currentUser }) => {
                   }
                 />
               </Link>
-              <Link to={"/message"}>
-                <Icon
-                  style={{ cursor: "pointer" }}
-                  icon="chevron-back"
-                />
-              </Link>
-              <NewPostButton />
             </Fragment>
           ) : (
             <Fragment>

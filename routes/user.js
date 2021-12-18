@@ -15,11 +15,14 @@ const {
   removeAvatar,
   updateProfile,
   retrieveSuggestedUsers,
+  retrieveUserById
 } = require('../controllers/userController');
 const { requireAuth, optionalAuth } = require('../controllers/authController');
 
 userRouter.get('/suggested/:max?', requireAuth, retrieveSuggestedUsers);
 userRouter.get('/:username', optionalAuth, retrieveUser);
+// get user by id
+userRouter.get("/userById/:userId", retrieveUserById);
 userRouter.get('/:username/posts/:offset', retrievePosts);
 userRouter.get('/:userId/:offset/following', requireAuth, retrieveFollowing);
 userRouter.get('/:userId/:offset/followers', requireAuth, retrieveFollowers);
@@ -41,5 +44,7 @@ userRouter.delete('/avatar', requireAuth, removeAvatar);
 
 userRouter.post('/:postId/bookmark', requireAuth, bookmarkPost);
 userRouter.post('/:userId/follow', requireAuth, followUser);
+
+
 
 module.exports = userRouter;

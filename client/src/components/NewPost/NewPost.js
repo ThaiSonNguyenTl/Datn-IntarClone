@@ -63,13 +63,6 @@ const NewPost = ({ file, hide }) => {
         );
       }
       default: {
-        // return (
-        //   <NewPostEdit
-        //     previewImage={previewImage}
-        //     setPreviewImage={setPreviewImage}
-        //     file={file}
-        //   />
-        // );
         return (
           <NewPostFilter
             previewImage={previewImage}
@@ -114,14 +107,6 @@ const NewPost = ({ file, hide }) => {
             >
               <h4 className="heading-4">Filter</h4>
             </li>
-            {/* <li
-              className={`new-post__nav-item ${
-                activeSection === 'edit' && 'new-post__nav-item--active'
-              }`}
-              onClick={() => setActiveSection('edit')}
-            >
-              <h4 className="heading-4">Edit</h4>
-            </li> */}
           </ul>
         </nav>
       )}

@@ -7,6 +7,7 @@ const INTIAL_STATE = {
 const socketReducer = (state = INTIAL_STATE, action) => {
   switch (action.type) {
     case socketTypes.CONNECT: {
+      console.log("action.payload:", action.payload);
       return {
         ...state,
         socket: action.payload,

@@ -19,8 +19,8 @@ import TextButton from '../Button/TextButton/TextButton';
 import Divider from '../Divider/Divider';
 import Card from '../Card/Card';
 import FormInput from '../FormInput/FormInput';
-import ViewOnGithubButton from '../ViewOnGithubButton/ViewOnGithubButton';
-import GithubLoginButton from '../GithubLoginButton/GithubLoginButton';
+// import ViewOnGithubButton from '../ViewOnGithubButton/ViewOnGithubButton';
+// import GithubLoginButton from '../GithubLoginButton/GithubLoginButton';
 
 const SignUpCard = ({ signUpStart, error, fetching }) => {
   const validate = (values) => {
@@ -59,14 +59,14 @@ const SignUpCard = ({ signUpStart, error, fetching }) => {
   return (
     <Fragment>
       <Card className="form-card">
-        <h1 className="heading-logo text-center">Instaclone</h1>
+        <h1 className="heading-logo text-center">ThaiSon_Network</h1>
         <h2
-          style={{ fontSize: '1.7rem' }}
+          style={{ fontSize: '1.5rem' }}
           className="heading-2 color-grey text-center"
         >
           Sign up to see photos and videos from your friends.
         </h2>
-        <GithubLoginButton
+        {/* <GithubLoginButton
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -75,8 +75,8 @@ const SignUpCard = ({ signUpStart, error, fetching }) => {
             color: 'white',
           }}
           button
-        />
-        <Divider>OR</Divider>
+        /> */}
+        {/* <Divider>OR</Divider> */}
         {Object.keys(formik.errors).map((field) => {
           if (formik.touched[field]) {
             return (
@@ -156,7 +156,7 @@ const SignUpCard = ({ signUpStart, error, fetching }) => {
           </Link>
         </section>
       </Card>
-      <ViewOnGithubButton />
+      {/* <ViewOnGithubButton /> */}
     </Fragment>
   );
 };

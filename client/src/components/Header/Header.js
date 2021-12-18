@@ -15,11 +15,15 @@ import NewPostButton from "../NewPost/NewPostButton/NewPostButton";
 import NotificationButton from "../Notification/NotificationButton/NotificationButton";
 import Button from "../Button/Button";
 import Icon from "../Icon/Icon";
+import Avatar from "../Avatar/Avatar";
+import { showModal } from '../../redux/modal/modalActions';
+import { signOut } from '../../redux/user/userActions';
 
-const Header = memo(({ currentUser }) => {
+const Header = memo(({ currentUser, showModal, signOut }) => {
   const [shouldMinimizeHeader, setShouldMinimizeHeader] = useState(false);
   const {
     location: { pathname },
+    history
   } = useHistory();
 
   // Shrink header height and remove logo on scroll
@@ -42,7 +46,7 @@ const Header = memo(({ currentUser }) => {
             <LogoCamera />
           </div>
           <div className="header__logo-header">
-            <h3 className="heading-logo">Instaclone</h3>
+            <h3 className="heading-logo">ThaiSon_Network</h3>
           </div>
         </Link>
         <SearchBox />
@@ -69,15 +73,32 @@ const Header = memo(({ currentUser }) => {
                 />
               </Link>
               <NotificationButton />
-              <Link to={"/" + currentUser.username}>
-                <Icon
-                  icon={
-                    pathname === "/" + currentUser.username
-                      ? "person-circle"
-                      : "person-circle-outline"
-                  }
+              {/* <Link to={"/" + currentUser.username}> */}
+                <Avatar
+                  className="avatar--small-header"
+                  imageSrc={currentUser.avatar}
+                  onClick={() => {
+                    showModal(
+                      {
+                        options: [
+                          {
+                            text: 'Change Password',
+                            onClick: () => history.push('/settings/password'),
+                          },
+                          {
+                            text: 'Log Out',
+                            onClick: () => {
+                              signOut();
+                              history.push('/');
+                            },
+                          },
+                        ],
+                      },
+                      'OptionsDialog/OptionsDialog'
+                    );
+                  }}
                 />
-              </Link>
+              {/* </Link> */}
             </Fragment>
           ) : (
             <Fragment>
@@ -103,4 +124,10 @@ const mapStateToProps = createStructuredSelector({
   currentUser: selectCurrentUser,
 });
 
-export default connect(mapStateToProps)(Header);
+const mapDispatchToProps = (dispatch) => ({
+  showModal: (props, component) => dispatch(showModal(props, component)),
+  signOut: () => dispatch(signOut()),
+});
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(Header);

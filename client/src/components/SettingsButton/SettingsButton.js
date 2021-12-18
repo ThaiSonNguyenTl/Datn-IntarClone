@@ -11,7 +11,7 @@ const SettingsButton = ({ showModal, signOut }) => {
   const history = useHistory();
   return (
     <Icon
-      icon="aperture-outline"
+      icon="settings-outline"
       style={{ cursor: 'pointer' }}
       onClick={() => {
         showModal(

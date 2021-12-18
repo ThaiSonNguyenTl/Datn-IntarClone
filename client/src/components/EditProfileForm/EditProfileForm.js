@@ -1,15 +1,15 @@
-import React, { useEffect, useRef } from 'react';
-import { connect } from 'react-redux';
-import { useFormik } from 'formik';
-import { createStructuredSelector } from 'reselect';
+import React, { useEffect, useRef } from "react";
+import { connect } from "react-redux";
+import { useFormik } from "formik";
+import { createStructuredSelector } from "reselect";
 
 import {
   selectCurrentUser,
   selectToken,
   selectUpdatingProfile,
-} from '../../redux/user/userSelectors';
-import { updateProfileStart } from '../../redux/user/userActions';
-import { showAlert } from '../../redux/alert/alertActions';
+} from "../../redux/user/userSelectors";
+import { updateProfileStart } from "../../redux/user/userActions";
+import { showAlert } from "../../redux/alert/alertActions";
 
 import {
   validateEmail,
@@ -17,15 +17,15 @@ import {
   validateUsername,
   validateBio,
   validateWebsite,
-} from '../../utils/validation';
+} from "../../utils/validation";
 
-import Avatar from '../Avatar/Avatar';
-import FormInput from '../FormInput/FormInput';
-import FormTextarea from '../FormTextarea/FormTextarea';
-import Button from '../Button/Button';
-import SettingsForm from '../SettingsForm/SettingsForm';
-import SettingsFormGroup from '../SettingsForm/SettingsFormGroup/SettingsFormGroup';
-import ChangeAvatarButton from '../ChangeAvatarButton/ChangeAvatarButton';
+import Avatar from "../Avatar/Avatar";
+import FormInput from "../FormInput/FormInput";
+import FormTextarea from "../FormTextarea/FormTextarea";
+import Button from "../Button/Button";
+import SettingsForm from "../SettingsForm/SettingsForm";
+import SettingsFormGroup from "../SettingsForm/SettingsFormGroup/SettingsFormGroup";
+import ChangeAvatarButton from "../ChangeAvatarButton/ChangeAvatarButton";
 import { useHistory } from "react-router-dom";
 
 const EditProfileForm = ({
@@ -61,19 +61,19 @@ const EditProfileForm = ({
       email: currentUser.email,
       fullName: currentUser.fullName,
       username: currentUser.username,
-      bio: currentUser.bio || '',
-      website: currentUser.website || '',
+      bio: currentUser.bio || "",
+      website: currentUser.website || "",
     },
     validate,
     onSubmit: async (values) => {
       await updateProfileStart(token, values);
-      history.push("/:username".replace(":username",values.username));
-      showAlert('Profile saved.');
+      history.push("/:username".replace(":username", values.username));
+      showAlert("Profile saved.");
     },
   });
 
   useEffect(() => {
-    document.title = 'Edit Profile • Instaclone';
+    document.title = "Edit Profile • Instaclone";
   }, []);
 
   return (
@@ -83,10 +83,10 @@ const EditProfileForm = ({
           <Avatar
             className="avatar--small"
             imageSrc={currentUser.avatar}
-            style={{ alignSelf: 'start' }}
+            style={{ alignSelf: "start" }}
           />
         </ChangeAvatarButton>
-        <div style={{ lineHeight: '2.2rem' }}>
+        <div style={{ lineHeight: "2.2rem" }}>
           <h3 className="heading-2 font-medium">{formik.values.username}</h3>
           <ChangeAvatarButton />
         </div>
@@ -95,26 +95,26 @@ const EditProfileForm = ({
         <label className="heading-3 font-bold">Name</label>
         <FormInput
           name="fullName"
-          fieldProps={formik.getFieldProps('fullName')}
+          fieldProps={formik.getFieldProps("fullName")}
         />
       </SettingsFormGroup>
       <SettingsFormGroup>
         <label className="heading-3 font-bold">Username</label>
         <FormInput
           name="username"
-          fieldProps={formik.getFieldProps('username')}
+          fieldProps={formik.getFieldProps("username")}
         />
       </SettingsFormGroup>
       <SettingsFormGroup>
         <label className="heading-3 font-bold">Website</label>
         <FormInput
           name="website"
-          fieldProps={formik.getFieldProps('website')}
+          fieldProps={formik.getFieldProps("website")}
         />
       </SettingsFormGroup>
       <SettingsFormGroup>
         <label className="heading-3 font-bold">Bio</label>
-        <FormTextarea name="bio" fieldProps={formik.getFieldProps('bio')} />
+        <FormTextarea name="bio" fieldProps={formik.getFieldProps("bio")} />
       </SettingsFormGroup>
       <SettingsFormGroup>
         <label></label>
@@ -123,23 +123,23 @@ const EditProfileForm = ({
             Personal Information
           </h3>
           <p
-            style={{ fontSize: '1.3rem', lineHeight: '1.6rem' }}
+            style={{ fontSize: "1.3rem", lineHeight: "1.6rem" }}
             className="color-grey"
           >
-            Provide your personal information, even if the account is used for a
-            business, a pet or something else. This won't be a part of your
-            public profile.
+            Provide your personal information, regardless of whether you use the
+            account for business, pets or otherwise. This information will not
+            be visible on your public profile.
           </p>
         </div>
       </SettingsFormGroup>
       <SettingsFormGroup>
         <label className="heading-3 font-bold">Email</label>
-        <FormInput name="email" fieldProps={formik.getFieldProps('email')} />
+        <FormInput name="email" fieldProps={formik.getFieldProps("email")} />
       </SettingsFormGroup>
       <SettingsFormGroup>
         <label></label>
         <Button
-          style={{ width: '10rem' }}
+          style={{ width: "10rem" }}
           disabled={Object.keys(formik.touched).length === 0}
           loading={updatingProfile}
           onClick={() => {

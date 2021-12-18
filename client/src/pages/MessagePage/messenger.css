@@ -70,7 +70,17 @@
   flex: 3;
 }
 
-.chatMenuWrapper,
+.chatMenuWrapper {
+  border-right: 1px solid #cccc;
+  padding: 10px;
+  height: 100%;
+}
+.userName {
+  font-size: 1.75rem;
+  font-weight: 700;
+  display: flex;
+  justify-content: center;
+}
 .chatBoxWrapper,
 .chatOnlineWrapper {
   padding: 10px;
@@ -79,10 +89,10 @@
 
 .noConversationText {
   position: absolute;
-  top: 10%;
-  font-size: 50px;
-  color: rgb(224, 220, 220);
+  top: 50%;
+  font-size: 2rem;
   cursor: default;
+  text-align: center;
 }
 
 @media screen and (max-width: 768px) {

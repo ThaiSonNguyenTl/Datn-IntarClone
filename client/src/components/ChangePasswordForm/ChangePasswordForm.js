@@ -37,7 +37,7 @@ const ChangePasswordForm = ({ currentUser, token, showAlert }) => {
       setFetching(true);
       await changePassword(oldPassword, newPassword, token);
       showAlert(
-        "Your password has been changed, you'll have to log in with the new one next time."
+        "Your password has been changed"
       );
       setFetching(false);
     } catch (err) {
@@ -88,12 +88,6 @@ const ChangePasswordForm = ({ currentUser, token, showAlert }) => {
         >
           Change Password
         </Button>
-      </SettingsFormGroup>
-      <SettingsFormGroup>
-        <label></label>
-        <TextButton style={{ width: '15rem', textAlign: 'left' }} blue bold>
-          Forgot Password?
-        </TextButton>
       </SettingsFormGroup>
     </SettingsForm>
   );

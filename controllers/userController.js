@@ -1,14 +1,14 @@
-const User = require('../models/User');
-const Post = require('../models/Post');
-const Followers = require('../models/Followers');
-const Following = require('../models/Following');
-const ConfirmationToken = require('../models/ConfirmationToken');
-const Notification = require('../models/Notification');
-const socketHandler = require('../handlers/socketHandler');
-const ObjectId = require('mongoose').Types.ObjectId;
-const cloudinary = require('cloudinary').v2;
-const fs = require('fs');
-const crypto = require('crypto');
+const User = require("../models/User");
+const Post = require("../models/Post");
+const Followers = require("../models/Followers");
+const Following = require("../models/Following");
+const ConfirmationToken = require("../models/ConfirmationToken");
+const Notification = require("../models/Notification");
+const socketHandler = require("../handlers/socketHandler");
+const ObjectId = require("mongoose").Types.ObjectId;
+const cloudinary = require("cloudinary").v2;
+const fs = require("fs");
+const crypto = require("crypto");
 
 const {
   validateEmail,
@@ -16,21 +16,22 @@ const {
   validateUsername,
   validateBio,
   validateWebsite,
-} = require('../utils/validation');
-const { sendConfirmationEmail } = require('../utils/controllerUtils');
+} = require("../utils/validation");
+const { sendConfirmationEmail } = require("../utils/controllerUtils");
 
-module.exports.retrieveUser = async (req, res, next) => {
-  const { username } = req.params;
+// get user by id
+module.exports.retrieveUserById = async (req, res, next) => {
+  const { userId } = req.params;
   const requestingUser = res.locals.user;
   try {
-    const user = await User.findOne(
-      { username },
-      'username fullName avatar bio bookmarks fullName _id website'
+    const user = await User.findById(
+      userId,
+      "username fullName avatar bio bookmarks fullName _id website"
     );
     if (!user) {
       return res
         .status(404)
-        .send({ error: 'Could not find a user with that username.' });
+        .send({ error: "Could not find a user with that by id." });
     }
 
     const posts = await Post.aggregate([
@@ -42,33 +43,33 @@ module.exports.retrieveUser = async (req, res, next) => {
             { $limit: 12 },
             {
               $lookup: {
-                from: 'postvotes',
-                localField: '_id',
-                foreignField: 'post',
-                as: 'postvotes',
+                from: "postvotes",
+                localField: "_id",
+                foreignField: "post",
+                as: "postvotes",
               },
             },
             {
               $lookup: {
-                from: 'comments',
-                localField: '_id',
-                foreignField: 'post',
-                as: 'comments',
+                from: "comments",
+                localField: "_id",
+                foreignField: "post",
+                as: "comments",
               },
             },
             {
               $lookup: {
-                from: 'commentreplies',
-                localField: 'comments._id',
-                foreignField: 'parentComment',
-                as: 'commentReplies',
+                from: "commentreplies",
+                localField: "comments._id",
+                foreignField: "parentComment",
+                as: "commentReplies",
               },
             },
             {
-              $unwind: '$postvotes',
+              $unwind: "$postvotes",
             },
             {
-              $addFields: { image: '$thumbnail' },
+              $addFields: { image: "$thumbnail" },
             },
             {
               $project: {
@@ -76,28 +77,137 @@ module.exports.retrieveUser = async (req, res, next) => {
                 followers: true,
                 following: true,
                 comments: {
-                  $sum: [{ $size: '$comments' }, { $size: '$commentReplies' }],
+                  $sum: [{ $size: "$comments" }, { $size: "$commentReplies" }],
                 },
                 image: true,
                 thumbnail: true,
                 filter: true,
                 caption: true,
                 author: true,
-                postVotes: { $size: '$postvotes.votes' },
+                postVotes: { $size: "$postvotes.votes" },
               },
             },
           ],
           postCount: [
             { $match: { author: ObjectId(user._id) } },
-            { $count: 'postCount' },
+            { $count: "postCount" },
           ],
         },
       },
-      { $unwind: '$postCount' },
+      { $unwind: "$postCount" },
       {
         $project: {
           data: true,
-          postCount: '$postCount.postCount',
+          postCount: "$postCount.postCount",
+        },
+      },
+    ]);
+
+    const followersDocument = await Followers.findOne({
+      user: ObjectId(user._id),
+    });
+
+    const followingDocument = await Following.findOne({
+      user: ObjectId(user._id),
+    });
+
+    return res.send({
+      user,
+      followers: followersDocument.followers.length,
+      following: followingDocument.following.length,
+      // Check if the requesting user follows the retrieved user
+      isFollowing: requestingUser
+        ? !!followersDocument.followers.find(
+            (follower) => String(follower.user) === String(requestingUser._id)
+          )
+        : false,
+      posts: posts[0],
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// get user by username
+module.exports.retrieveUser = async (req, res, next) => {
+  const { username } = req.params;
+  const requestingUser = res.locals.user;
+  try {
+    const user = await User.findOne(
+      { username },
+      "username fullName avatar bio bookmarks fullName _id website"
+    );
+    if (!user) {
+      return res
+        .status(404)
+        .send({ error: "Could not find a user with that username." });
+    }
+
+    const posts = await Post.aggregate([
+      {
+        $facet: {
+          data: [
+            { $match: { author: ObjectId(user._id) } },
+            { $sort: { date: -1 } },
+            { $limit: 12 },
+            {
+              $lookup: {
+                from: "postvotes",
+                localField: "_id",
+                foreignField: "post",
+                as: "postvotes",
+              },
+            },
+            {
+              $lookup: {
+                from: "comments",
+                localField: "_id",
+                foreignField: "post",
+                as: "comments",
+              },
+            },
+            {
+              $lookup: {
+                from: "commentreplies",
+                localField: "comments._id",
+                foreignField: "parentComment",
+                as: "commentReplies",
+              },
+            },
+            {
+              $unwind: "$postvotes",
+            },
+            {
+              $addFields: { image: "$thumbnail" },
+            },
+            {
+              $project: {
+                user: true,
+                followers: true,
+                following: true,
+                comments: {
+                  $sum: [{ $size: "$comments" }, { $size: "$commentReplies" }],
+                },
+                image: true,
+                thumbnail: true,
+                filter: true,
+                caption: true,
+                author: true,
+                postVotes: { $size: "$postvotes.votes" },
+              },
+            },
+          ],
+          postCount: [
+            { $match: { author: ObjectId(user._id) } },
+            { $count: "postCount" },
+          ],
+        },
+      },
+      { $unwind: "$postCount" },
+      {
+        $project: {
+          data: true,
+          postCount: "$postCount.postCount",
         },
       },
     ]);
@@ -137,44 +247,44 @@ module.exports.retrievePosts = async (req, res, next) => {
       { $limit: 12 },
       {
         $lookup: {
-          from: 'users',
-          localField: 'author',
-          foreignField: '_id',
-          as: 'user',
+          from: "users",
+          localField: "author",
+          foreignField: "_id",
+          as: "user",
         },
       },
-      { $match: { 'user.username': username } },
+      { $match: { "user.username": username } },
       {
         $lookup: {
-          from: 'comments',
-          localField: '_id',
-          foreignField: 'post',
-          as: 'comments',
+          from: "comments",
+          localField: "_id",
+          foreignField: "post",
+          as: "comments",
         },
       },
       {
         $lookup: {
-          from: 'postvotes',
-          localField: '_id',
-          foreignField: 'post',
-          as: 'postVotes',
+          from: "postvotes",
+          localField: "_id",
+          foreignField: "post",
+          as: "postVotes",
         },
       },
-      { $unwind: '$postVotes' },
+      { $unwind: "$postVotes" },
       {
         $project: {
           image: true,
           caption: true,
           date: true,
-          'user.username': true,
-          'user.avatar': true,
-          comments: { $size: '$comments' },
-          postVotes: { $size: '$postVotes.votes' },
+          "user.username": true,
+          "user.avatar": true,
+          comments: { $size: "$comments" },
+          postVotes: { $size: "$postVotes.votes" },
         },
       },
     ]);
     if (posts.length === 0) {
-      return res.status(404).send({ error: 'Could not find any posts.' });
+      return res.status(404).send({ error: "Could not find any posts." });
     }
     return res.send(posts);
   } catch (err) {
@@ -191,19 +301,19 @@ module.exports.bookmarkPost = async (req, res, next) => {
     if (!post) {
       return res
         .status(404)
-        .send({ error: 'Could not find a post with that id.' });
+        .send({ error: "Could not find a post with that id." });
     }
 
     const userBookmarkUpdate = await User.updateOne(
       {
         _id: user._id,
-        'bookmarks.post': { $ne: postId },
+        "bookmarks.post": { $ne: postId },
       },
       { $push: { bookmarks: { post: postId } } }
     );
     if (!userBookmarkUpdate.nModified) {
       if (!userBookmarkUpdate.ok) {
-        return res.status(500).send({ error: 'Could not bookmark the post.' });
+        return res.status(500).send({ error: "Could not bookmark the post." });
       }
       // The above query did not modify anything meaning that the user has already bookmarked the post
       // Remove the bookmark instead
@@ -212,11 +322,11 @@ module.exports.bookmarkPost = async (req, res, next) => {
         { $pull: { bookmarks: { post: postId } } }
       );
       if (!userRemoveBookmarkUpdate.nModified) {
-        return res.status(500).send({ error: 'Could not bookmark the post.' });
+        return res.status(500).send({ error: "Could not bookmark the post." });
       }
-      return res.send({ success: true, operation: 'remove' });
+      return res.send({ success: true, operation: "remove" });
     }
-    return res.send({ success: true, operation: 'add' });
+    return res.send({ success: true, operation: "add" });
   } catch (err) {
     next(err);
   }
@@ -231,16 +341,16 @@ module.exports.followUser = async (req, res, next) => {
     if (!userToFollow) {
       return res
         .status(400)
-        .send({ error: 'Could not find a user with that id.' });
+        .send({ error: "Could not find a user with that id." });
     }
 
     const followerUpdate = await Followers.updateOne(
-      { user: userId, 'followers.user': { $ne: user._id } },
+      { user: userId, "followers.user": { $ne: user._id } },
       { $push: { followers: { user: user._id } } }
     );
 
     const followingUpdate = await Following.updateOne(
-      { user: user._id, 'following.user': { $ne: userId } },
+      { user: user._id, "following.user": { $ne: userId } },
       { $push: { following: { user: userId } } }
     );
 
@@ -248,7 +358,7 @@ module.exports.followUser = async (req, res, next) => {
       if (!followerUpdate.ok || !followingUpdate.ok) {
         return res
           .status(500)
-          .send({ error: 'Could not follow user please try again later.' });
+          .send({ error: "Could not follow user please try again later." });
       }
       // Nothing was modified in the above query meaning that the user is already following
       // Unfollow instead
@@ -266,27 +376,27 @@ module.exports.followUser = async (req, res, next) => {
       if (!followerUnfollowUpdate.ok || !followingUnfollowUpdate.ok) {
         return res
           .status(500)
-          .send({ error: 'Could not follow user please try again later.' });
+          .send({ error: "Could not follow user please try again later." });
       }
-      return res.send({ success: true, operation: 'unfollow' });
+      return res.send({ success: true, operation: "unfollow" });
     }
 
     const notification = new Notification({
-      notificationType: 'follow',
+      notificationType: "follow",
       sender: user._id,
       receiver: userId,
       date: Date.now(),
     });
 
-    const sender = await User.findById(user._id, 'username avatar');
+    const sender = await User.findById(user._id, "username avatar");
     const isFollowing = await Following.findOne({
       user: userId,
-      'following.user': user._id,
+      "following.user": user._id,
     });
 
     await notification.save();
     socketHandler.sendNotification(req, {
-      notificationType: 'follow',
+      notificationType: "follow",
       sender: {
         _id: sender._id,
         username: sender.username,
@@ -297,7 +407,7 @@ module.exports.followUser = async (req, res, next) => {
       isFollowing: !!isFollowing,
     });
 
-    res.send({ success: true, operation: 'follow' });
+    res.send({ success: true, operation: "follow" });
   } catch (err) {
     next(err);
   }
@@ -320,16 +430,16 @@ const retrieveRelatedUsers = async (user, userId, offset, followers) => {
     },
     {
       $lookup: {
-        from: 'users',
+        from: "users",
         let: followers
-          ? { userId: '$followers.user' }
-          : { userId: '$following.user' },
+          ? { userId: "$followers.user" }
+          : { userId: "$following.user" },
         pipeline: [
           {
             $match: {
               // Using the $in operator instead of the $eq
               // operator because we can't coerce the types
-              $expr: { $in: ['$_id', '$$userId'] },
+              $expr: { $in: ["$_id", "$$userId"] },
             },
           },
           {
@@ -339,23 +449,23 @@ const retrieveRelatedUsers = async (user, userId, offset, followers) => {
             $limit: 10,
           },
         ],
-        as: 'users',
+        as: "users",
       },
     },
     {
       $lookup: {
-        from: 'followers',
-        localField: 'users._id',
-        foreignField: 'user',
-        as: 'userFollowers',
+        from: "followers",
+        localField: "users._id",
+        foreignField: "user",
+        as: "userFollowers",
       },
     },
     {
       $project: {
-        'users._id': true,
-        'users.username': true,
-        'users.avatar': true,
-        'users.fullName': true,
+        "users._id": true,
+        "users.username": true,
+        "users.avatar": true,
+        "users.fullName": true,
         userFollowers: true,
       },
     },
@@ -414,30 +524,30 @@ module.exports.searchUsers = async (req, res, next) => {
   if (!username) {
     return res
       .status(400)
-      .send({ error: 'Please provide a user to search for.' });
+      .send({ error: "Please provide a user to search for." });
   }
 
   try {
     const users = await User.aggregate([
       {
         $match: {
-          username: { $regex: new RegExp(username), $options: 'i' },
+          username: { $regex: new RegExp(username), $options: "i" },
         },
       },
       {
         $lookup: {
-          from: 'followers',
-          localField: '_id',
-          foreignField: 'user',
-          as: 'followers',
+          from: "followers",
+          localField: "_id",
+          foreignField: "user",
+          as: "followers",
         },
       },
       {
-        $unwind: '$followers',
+        $unwind: "$followers",
       },
       {
         $addFields: {
-          followersCount: { $size: '$followers.followers' },
+          followersCount: { $size: "$followers.followers" },
         },
       },
       {
@@ -461,7 +571,7 @@ module.exports.searchUsers = async (req, res, next) => {
     if (users.length === 0) {
       return res
         .status(404)
-        .send({ error: 'Could not find any users matching the criteria.' });
+        .send({ error: "Could not find any users matching the criteria." });
     }
     return res.send(users);
   } catch (err) {
@@ -481,7 +591,7 @@ module.exports.confirmUser = async (req, res, next) => {
     if (!confirmationToken) {
       return res
         .status(404)
-        .send({ error: 'Invalid or expired confirmation link.' });
+        .send({ error: "Invalid or expired confirmation link." });
     }
     await ConfirmationToken.deleteOne({ token, user: user._id });
     await User.updateOne({ _id: user._id }, { confirmed: true });
@@ -497,7 +607,7 @@ module.exports.changeAvatar = async (req, res, next) => {
   if (!req.file) {
     return res
       .status(400)
-      .send({ error: 'Please provide the image to upload.' });
+      .send({ error: "Please provide the image to upload." });
   }
 
   cloudinary.config({
@@ -510,8 +620,8 @@ module.exports.changeAvatar = async (req, res, next) => {
     const response = await cloudinary.uploader.upload(req.file.path, {
       width: 200,
       height: 200,
-      gravity: 'face',
-      crop: 'thumb',
+      gravity: "face",
+      crop: "thumb",
     });
     fs.unlinkSync(req.file.path);
 
@@ -521,7 +631,7 @@ module.exports.changeAvatar = async (req, res, next) => {
     );
 
     if (!avatarUpdate.nModified) {
-      throw new Error('Could not update user avatar.');
+      throw new Error("Could not update user avatar.");
     }
 
     return res.send({ avatar: response.secure_url });
@@ -536,7 +646,7 @@ module.exports.removeAvatar = async (req, res, next) => {
   try {
     const avatarUpdate = await User.updateOne(
       { _id: user._id },
-      { $unset: { avatar: '' } }
+      { $unset: { avatar: "" } }
     );
     if (!avatarUpdate.nModified) {
       next(err);
@@ -571,7 +681,7 @@ module.exports.updateProfile = async (req, res, next) => {
         if (existingUser)
           return res
             .status(400)
-            .send({ error: 'Please choose another username.' });
+            .send({ error: "Please choose another username." });
         userDocument.username = username;
         updatedFields.username = username;
       }
@@ -580,9 +690,9 @@ module.exports.updateProfile = async (req, res, next) => {
     if (website) {
       const websiteError = validateWebsite(website);
       if (websiteError) return res.status(400).send({ error: websiteError });
-      if (!website.includes('http://') && !website.includes('https://')) {
-        userDocument.website = 'https://' + website;
-        updatedFields.website = 'https://' + website;
+      if (!website.includes("http://") && !website.includes("https://")) {
+        userDocument.website = "https://" + website;
+        updatedFields.website = "https://" + website;
       } else {
         userDocument.website = website;
         updatedFields.website = website;
@@ -605,10 +715,10 @@ module.exports.updateProfile = async (req, res, next) => {
         if (existingUser)
           return res
             .status(400)
-            .send({ error: 'Please choose another email.' });
+            .send({ error: "Please choose another email." });
         confirmationToken = new ConfirmationToken({
           user: user._id,
-          token: crypto.randomBytes(20).toString('hex'),
+          token: crypto.randomBytes(20).toString("hex"),
         });
         await confirmationToken.save();
         userDocument.email = email;
@@ -640,21 +750,21 @@ module.exports.retrieveSuggestedUsers = async (req, res, next) => {
       },
       {
         $lookup: {
-          from: 'followers',
-          localField: '_id',
-          foreignField: 'user',
-          as: 'followers',
+          from: "followers",
+          localField: "_id",
+          foreignField: "user",
+          as: "followers",
         },
       },
       {
         $lookup: {
-          from: 'posts',
-          let: { userId: '$_id' },
+          from: "posts",
+          let: { userId: "$_id" },
           pipeline: [
             {
               $match: {
                 $expr: {
-                  $eq: ['$author', '$$userId'],
+                  $eq: ["$author", "$$userId"],
                 },
               },
             },
@@ -665,11 +775,11 @@ module.exports.retrieveSuggestedUsers = async (req, res, next) => {
               $limit: 3,
             },
           ],
-          as: 'posts',
+          as: "posts",
         },
       },
       {
-        $unwind: '$followers',
+        $unwind: "$followers",
       },
       {
         $project: {
@@ -677,7 +787,7 @@ module.exports.retrieveSuggestedUsers = async (req, res, next) => {
           fullName: true,
           email: true,
           avatar: true,
-          isFollowing: { $in: [user._id, '$followers.followers.user'] },
+          isFollowing: { $in: [user._id, "$followers.followers.user"] },
           posts: true,
         },
       },
@@ -691,7 +801,7 @@ module.exports.retrieveSuggestedUsers = async (req, res, next) => {
         $sort: { posts: -1 },
       },
       {
-        $unset: ['isFollowing'],
+        $unset: ["isFollowing"],
       },
     ]);
     res.send(users);
